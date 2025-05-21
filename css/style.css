@@ -204,7 +204,7 @@ button:hover {
 
 .direction-indicator {
     position: absolute;
-    top: 0;
+    top: -20px; /* Move it up so it points to the dot but doesn't overlap */
     left: 50%;
     width: 0;
     height: 0;
@@ -214,4 +214,20 @@ button:hover {
     transform: translateX(-50%);
     transform-origin: center bottom;
     z-index: 0;
+}
+
+.fit-route-button {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.fit-route-button:hover {
+    background-color: #3367d6;
 }

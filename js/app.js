@@ -472,7 +472,15 @@ function stopLocationTracking() {
 let lastHeading = 0;
 
 // Function to initialize compass heading detection
+// Add this near your other global variables at the top of the file
+let compassInitialized = false;
+
+// Then modify the initCompassHeading function
 function initCompassHeading() {
+    // Prevent multiple initializations
+    if (compassInitialized) return;
+    compassInitialized = true;
+    
     if (window.DeviceOrientationEvent) {
         // Check if we need to request permission (iOS 13+)
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -559,3 +567,18 @@ function flashUpdateIndicator() {
 let lastRouteCalculation = 0;
 const ROUTE_THROTTLE_MS = 5000; // Only calculate route every 5 seconds
 let pendingRouteCalculation = false;
+
+// Add this after your DOM element references at the top of your file
+const fitRouteBtn = document.getElementById('fit-route-btn');
+
+// Add this function to handle the button click
+fitRouteBtn.addEventListener('click', function() {
+    if (routeLayer) {
+        map.fitBounds(routeLayer.getBounds(), { 
+            padding: [50, 50],
+            maxZoom: 15 // Prevents zooming in too close
+        });
+    } else {
+        alert('No route available to fit to');
+    }
+});
