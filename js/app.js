@@ -6,9 +6,10 @@ const mapboxAccessToken = 'pk.eyJ1Ijoicm95LWhlaW5yaWNoIiwiYSI6ImNtYXdrNXRwcTBien
 const map = L.map('map');
 
 // Add Mapbox tile layer (replacing OpenStreetMap)
+// Add Mapbox tile layer with custom style
 L.mapboxGL({
     accessToken: mapboxAccessToken,
-    style: 'mapbox://styles/mapbox/streets-v11' // You can choose different styles
+    style: 'mapbox://styles/roy-heinrich/cmaxzthoa002k01rk4peh94se' // Your custom style
 }).addTo(map);
 
 // Variables to store markers and route
@@ -274,3 +275,46 @@ map.on('click', function(e) {
         getRoute();
     }
 });
+
+// Add this after your map is initialized
+const buildingData = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Tomas SM. Bautista Elementary School"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        // Replace with actual building outline coordinates
+                        [122.489344, 11.609312],
+                        [122.489944, 11.609312],
+                        [122.489944, 11.609712],
+                        [122.489344, 11.609712],
+                        [122.489344, 11.609312]
+                    ]
+                ]
+            }
+        }
+    ]
+};
+
+L.geoJSON(buildingData, {
+    style: {
+        color: "#ff7800",
+        weight: 2,
+        opacity: 0.65
+    },
+    onEachFeature: function(feature, layer) {
+        if (feature.properties && feature.properties.name) {
+            layer.bindTooltip(feature.properties.name, {
+                permanent: true,
+                direction: "center",
+                className: "building-label-tooltip"
+            });
+        }
+    }
+}).addTo(map);

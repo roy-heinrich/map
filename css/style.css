@@ -84,3 +84,16 @@ button:hover {
 #direction-steps li {
     margin-bottom: 8px;
 }
+
+.building-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.building-label-tooltip {
+    background: white;
+    border: 1px solid #666;
+    font-weight: bold;
+    box-shadow: none;
+}
