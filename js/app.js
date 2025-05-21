@@ -30,14 +30,29 @@ const defaultEndLng = 122.489644;
 // Function to create a marker (markers will not be draggable by default)
 function createMarker(latlng, isStart) {
     const markerColor = isStart ? 'green' : 'red'; // Green for user, Red for target
-    const markerIcon = L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-    });
     
-    return L.marker(latlng, { icon: markerIcon, draggable: false }).addTo(map); // draggable: false
+    // Create a different icon for the user marker that shows direction
+    if (isStart) {
+        const markerIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="marker-container">
+                    <div class="direction-indicator" id="direction-arrow"></div>
+                    <div class="position-dot" style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>
+                  </div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+        return L.marker(latlng, { icon: markerIcon, draggable: false }).addTo(map);
+    } else {
+        // Regular marker for target
+        const markerIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        return L.marker(latlng, { icon: markerIcon, draggable: false }).addTo(map);
+    }
 }
 
 // Initialize the target (end) marker
@@ -59,15 +74,27 @@ function addLocationButton() {
     
     locationButton.onAdd = function(map) {
         const div = L.DomUtil.create('div', 'location-button');
-        div.innerHTML = '<button style="padding: 10px; background-color: white; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">📍 Get My Location</button>';
+        div.innerHTML = '<button id="location-toggle" style="padding: 12px; background-color: white; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 14px;">📍 Track My Location</button>';
         div.style.backgroundColor = 'white';
         div.style.padding = '5px';
         div.style.borderRadius = '4px';
         div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
         
         div.onclick = function() {
-            userLocationStatus.textContent = 'Requesting your location...';
-            getUserLocation();
+            const button = document.getElementById('location-toggle');
+            
+            if (locationWatchId === null) {
+                // Start tracking
+                button.textContent = '⏹️ Stop Tracking';
+                button.style.backgroundColor = '#ffcccc';
+                userLocationStatus.textContent = 'Starting location tracking...';
+                getUserLocation();
+            } else {
+                // Stop tracking
+                button.textContent = '📍 Track My Location';
+                button.style.backgroundColor = 'white';
+                stopLocationTracking();
+            }
         };
         
         return div;
@@ -80,32 +107,72 @@ function addLocationButton() {
 initializeTargetLocation();
 addLocationButton(); // Add the location button instead of automatically requesting location
 // getUserLocation(); // Comment out the automatic location request
-
+initCompassHeading(); // Initialize compass heading detection
 // Get User's Current Location
+// Global variable to store the watch ID
+let locationWatchId = null;
+
+// Get User's Current Location and keep tracking
 function getUserLocation() {
     if (navigator.geolocation) {
-        userLocationStatus.textContent = 'Detecting your location...';
-        navigator.geolocation.getCurrentPosition(
+        userLocationStatus.textContent = 'Tracking your location...';
+        
+        // Show battery warning
+        const batteryWarning = document.getElementById('battery-warning');
+        if (batteryWarning) {
+            batteryWarning.style.display = 'block';
+        }
+        
+        // Clear any existing watch
+        if (locationWatchId !== null) {
+            navigator.geolocation.clearWatch(locationWatchId);
+        }
+        
+        // Initialize compass heading
+        initCompassHeading();
+        
+        // Options for better accuracy
+        const options = {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 5000
+        };
+        
+        // Start watching position
+        locationWatchId = navigator.geolocation.watchPosition(
             (position) => {
                 const userLat = position.coords.latitude;
                 const userLng = position.coords.longitude;
                 const userLatLng = L.latLng(userLat, userLng);
+                const accuracy = position.coords.accuracy;
 
-                userLocationStatus.textContent = 'Location found!';
+                userLocationStatus.textContent = 'Location tracking active';
                 
+                // Update or create the user marker
                 if (startMarker) {
-                    map.removeLayer(startMarker);
+                    // Update existing marker position
+                    startMarker.setLatLng(userLatLng);
+                } else {
+                    // Create new marker
+                    startMarker = createMarker(userLatLng, true);
                 }
-                startMarker = createMarker(userLatLng, true); // true indicates it's the start/user marker
-                // startInput.value = `${userLatLng.lat.toFixed(6)}, ${userLatLng.lng.toFixed(6)}`; // Input field removed
-
-                // If target marker is also set, get the route
+                
+                // Update or create accuracy circle
+                updateAccuracyCircle(userLatLng, accuracy);
+                
+                // If this is the first position update or we've moved significantly, center the map
+                if (!window.lastPosition || calculateDistance(window.lastPosition, userLatLng) > 10) {
+                    map.setView(userLatLng, map.getZoom() || 15);
+                    window.lastPosition = userLatLng;
+                }
+                
+                // If target marker is also set, update the route
                 if (endMarker) {
                     getRoute();
                 }
             },
             (error) => {
-                console.error("Error getting user location:", error);
+                console.error("Error tracking user location:", error);
                 let errorMsg = "Unknown error";
                 
                 // Provide better error messages based on error code
@@ -117,24 +184,18 @@ function getUserLocation() {
                         errorMsg = "Position unavailable";
                         break;
                     case error.TIMEOUT:
-                        errorMsg = "Request timed out";
+                        errorMsg = "Location request timed out";
                         break;
                 }
                 
-                userLocationStatus.textContent = `Error: ${errorMsg}. Please enable location services.`;
-                
-                // Optionally, still show map centered on target or a default view
-                if (!map.getCenter()) { // If map view not set
-                    map.setView([defaultEndLat, defaultEndLng], 7); // Fallback view
-                }
+                userLocationStatus.textContent = `Error: ${errorMsg}`;
+                userLocationStatus.style.backgroundColor = '#ffdddd';
             },
-            { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+            options
         );
     } else {
-        userLocationStatus.textContent = "Geolocation is not supported by this browser.";
-        if (!map.getCenter()) {
-            map.setView([defaultEndLat, defaultEndLng], 7); // Fallback view
-        }
+        userLocationStatus.textContent = 'Geolocation is not supported by your browser';
+        userLocationStatus.style.backgroundColor = '#ffdddd';
     }
 }
 
@@ -276,7 +337,16 @@ map.on('click', function(e) {
     }
 });
 
-// Add this after your map is initialized
+// Add this after map initialization
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    // Disable animations for better performance on mobile
+    map.options.zoomAnimation = false;
+    map.options.markerZoomAnimation = false;
+    
+    // Adjust zoom control position for better thumb access
+    map.zoomControl.setPosition('bottomright');
+}
+
 const buildingData = {
     "type": "FeatureCollection",
     "features": [
@@ -318,3 +388,120 @@ L.geoJSON(buildingData, {
         }
     }
 }).addTo(map);
+
+
+// Global variable for accuracy circle
+let accuracyCircle = null;
+
+// Update the accuracy circle around user's position
+function updateAccuracyCircle(latlng, accuracy) {
+    // Remove existing circle if it exists
+    if (accuracyCircle) {
+        map.removeLayer(accuracyCircle);
+    }
+    
+    // Create a circle showing the accuracy radius
+    accuracyCircle = L.circle(latlng, {
+        radius: accuracy,
+        color: '#4285F4',
+        fillColor: '#4285F4',
+        fillOpacity: 0.15,
+        weight: 2
+    }).addTo(map);
+}
+
+// Calculate distance between two points in meters
+function calculateDistance(latlng1, latlng2) {
+    return latlng1.distanceTo(latlng2);
+}
+
+// Stop location tracking
+function stopLocationTracking() {
+    if (locationWatchId !== null) {
+        navigator.geolocation.clearWatch(locationWatchId);
+        locationWatchId = null;
+        userLocationStatus.textContent = 'Location tracking stopped';
+        
+        // Hide battery warning
+        const batteryWarning = document.getElementById('battery-warning');
+        if (batteryWarning) {
+            batteryWarning.style.display = 'none';
+        }
+        
+        // Remove accuracy circle if it exists
+        if (accuracyCircle) {
+            map.removeLayer(accuracyCircle);
+            accuracyCircle = null;
+        }
+    }
+}
+
+// Global variable to store the last known heading
+let lastHeading = 0;
+
+// Function to initialize compass heading detection
+function initCompassHeading() {
+    if (window.DeviceOrientationEvent) {
+        // Check if we need to request permission (iOS 13+)
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // Create a button to request permission
+            const compassButton = L.control({position: 'topright'});
+            
+            compassButton.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'compass-button');
+                div.innerHTML = '<button style="padding: 8px; background-color: white; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Enable Compass</button>';
+                div.style.backgroundColor = 'white';
+                div.style.padding = '5px';
+                div.style.borderRadius = '4px';
+                div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
+                
+                div.onclick = function() {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(function(response) {
+                            if (response === 'granted') {
+                                window.addEventListener('deviceorientation', handleOrientation);
+                                div.style.display = 'none'; // Hide button after permission granted
+                            }
+                        })
+                        .catch(console.error);
+                };
+                
+                return div;
+            };
+            
+            compassButton.addTo(map);
+        } else {
+            // For non-iOS devices or older iOS versions
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+    } else {
+        console.log("Device orientation not supported on this device");
+    }
+}
+
+// Handle device orientation events
+function handleOrientation(event) {
+    // Get compass heading
+    let heading = null;
+    
+    if (event.webkitCompassHeading) {
+        // For iOS devices
+        heading = event.webkitCompassHeading;
+    } else if (event.alpha) {
+        // For Android devices
+        heading = 360 - event.alpha; // Convert to degrees (0-360)
+    }
+    
+    if (heading !== null) {
+        lastHeading = heading;
+        updateMarkerDirection(heading);
+    }
+}
+
+// Update the direction indicator on the marker
+function updateMarkerDirection(heading) {
+    const directionArrow = document.getElementById('direction-arrow');
+    if (directionArrow) {
+        directionArrow.style.transform = `translateX(-50%) rotate(${heading}deg)`;
+    }
+}
