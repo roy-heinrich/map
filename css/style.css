@@ -208,9 +208,9 @@ button:hover {
     left: 50%;
     width: 0;
     height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-bottom: 12px solid #4285F4;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 20px solid #4285F4;
     transform: translateX(-50%);
     transform-origin: center bottom;
     z-index: 0;

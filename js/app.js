@@ -148,6 +148,8 @@ function getUserLocation() {
 
                 userLocationStatus.textContent = 'Location tracking active';
                 
+                // In the getUserLocation function, replace the section that updates the route:
+                
                 // Update or create the user marker
                 if (startMarker) {
                     // Update existing marker position
@@ -162,13 +164,32 @@ function getUserLocation() {
                 
                 // If this is the first position update or we've moved significantly, center the map
                 if (!window.lastPosition || calculateDistance(window.lastPosition, userLatLng) > 10) {
-                    map.setView(userLatLng, map.getZoom() || 15);
+                    // Only set the center, don't change the zoom level
+                    map.panTo(userLatLng);
                     window.lastPosition = userLatLng;
                 }
                 
-                // If target marker is also set, update the route
+                // If target marker is also set, throttle route calculations
                 if (endMarker) {
-                    getRoute();
+                    const now = Date.now();
+                    // Only calculate route if enough time has passed since last calculation
+                    // or if we've moved significantly (more than 20 meters)
+                    if (!pendingRouteCalculation && 
+                        (now - lastRouteCalculation > ROUTE_THROTTLE_MS || 
+                         (window.lastRoutePosition && calculateDistance(window.lastRoutePosition, userLatLng) > 20))) {
+                        
+                        pendingRouteCalculation = true;
+                        lastRouteCalculation = now;
+                        window.lastRoutePosition = userLatLng;
+                        
+                        // Don't change status text for every calculation
+                        // userLocationStatus.textContent = 'Calculating route...';
+                        
+                        // Calculate route
+                        getRoute().finally(() => {
+                            pendingRouteCalculation = false;
+                        });
+                    }
                 }
             },
             (error) => {
@@ -209,7 +230,12 @@ async function getRoute() {
         return;
     }
     
-    userLocationStatus.textContent = 'Calculating route...';
+    // Only show calculating message on first calculation or after errors
+    if (userLocationStatus.textContent !== 'Location tracking active' && 
+        userLocationStatus.textContent !== 'Route found!') {
+        userLocationStatus.textContent = 'Calculating route...';
+    }
+    
     // Clear previous route
     if (routeLayer) {
         map.removeLayer(routeLayer);
@@ -239,8 +265,11 @@ async function getRoute() {
         const data = await response.json();
         console.log('Mapbox Response Data:', data);
         
+        // When route is found, only update status if it wasn't already showing route found
         if (data.routes && data.routes.length > 0) {
-            userLocationStatus.textContent = 'Route found!';
+            if (userLocationStatus.textContent !== 'Route found!') {
+                userLocationStatus.textContent = 'Route found!';
+            }
             const route = data.routes[0];
             
             // Display route on map
@@ -257,8 +286,11 @@ async function getRoute() {
                 opacity: 0.7
             }).addTo(map);
             
-            // Fit map to show the entire route
-            map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+            // Only fit bounds when route is first calculated or explicitly requested
+            if (!window.routeInitiallyCalculated) {
+                map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+                window.routeInitiallyCalculated = true;
+            }
             
             // Display route information
             const distance = (route.distance / 1000).toFixed(2); // Convert meters to kilometers
@@ -500,8 +532,30 @@ function handleOrientation(event) {
 
 // Update the direction indicator on the marker
 function updateMarkerDirection(heading) {
-    const directionArrow = document.getElementById('direction-arrow');
-    if (directionArrow) {
-        directionArrow.style.transform = `translateX(-50%) rotate(${heading}deg)`;
+    // Find the direction arrow within the marker's icon
+    if (startMarker) {
+        const markerIcon = startMarker.getElement();
+        if (markerIcon) {
+            const directionArrow = markerIcon.querySelector('.direction-indicator');
+            if (directionArrow) {
+                directionArrow.style.transform = `translateX(-50%) rotate(${heading}deg)`;
+            }
+        }
     }
 }
+// Function to flash the update indicator
+function flashUpdateIndicator() {
+    const indicator = document.getElementById('update-indicator');
+    if (!indicator) return;
+    
+    indicator.style.opacity = '1';
+    setTimeout(() => {
+        indicator.style.opacity = '0';
+    }, 300);
+}
+
+// Call this in your position update handler and when route is calculated
+// Variables for throttling route calculations
+let lastRouteCalculation = 0;
+const ROUTE_THROTTLE_MS = 5000; // Only calculate route every 5 seconds
+let pendingRouteCalculation = false;
