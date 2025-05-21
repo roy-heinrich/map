@@ -472,15 +472,7 @@ function stopLocationTracking() {
 let lastHeading = 0;
 
 // Function to initialize compass heading detection
-// Add this near your other global variables at the top of the file
-let compassInitialized = false;
-
-// Then modify the initCompassHeading function
 function initCompassHeading() {
-    // Prevent multiple initializations
-    if (compassInitialized) return;
-    compassInitialized = true;
-    
     if (window.DeviceOrientationEvent) {
         // Check if we need to request permission (iOS 13+)
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
