@@ -29,18 +29,21 @@ const defaultEndLng = 122.489644;
 
 // Function to create a marker (markers will not be draggable by default)
 function createMarker(latlng, isStart) {
-    const markerColor = isStart ? 'green' : 'red'; // Green for user, Red for target
+    const markerColor = isStart ? '#00C853' : 'red'; // Brighter green for user, Red for target
     
     // Create a different icon for the user marker that shows direction
     if (isStart) {
         const markerIcon = L.divIcon({
             className: 'custom-marker',
             html: `<div class="marker-container">
-                    <div class="user-arrow" style="border-color: transparent transparent ${markerColor} transparent;"></div>
+                    <div class="direction-arrow">
+                      <div class="arrow-head"></div>
+                      <div class="arrow-stem"></div>
+                    </div>
                     <div class="location-label">You are here</div>
                   </div>`,
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
+            iconSize: [32, 32],  // Larger icon size
+            iconAnchor: [16, 16] // Center anchor point
         });
         return L.marker(latlng, { icon: markerIcon, draggable: false }).addTo(map);
     } else {
@@ -537,7 +540,7 @@ function updateMarkerDirection(heading) {
     if (startMarker) {
         const markerIcon = startMarker.getElement();
         if (markerIcon) {
-            const arrow = markerIcon.querySelector('.user-arrow');
+            const arrow = markerIcon.querySelector('.direction-arrow');
             if (arrow) {
                 // Rotate the arrow to point in the direction of travel
                 arrow.style.transform = `translate(-50%, -50%) rotate(${heading}deg)`;

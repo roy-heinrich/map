@@ -199,8 +199,54 @@ button:hover {
 /* Direction indicator styles */
 .marker-container {
     position: relative;
+    width: 32px;
+    height: 32px;
+}
+
+/* Hide the old elements we're replacing */
+.position-dot, .direction-indicator {
+    display: none;
+}
+
+/* New arrow design with 4 points */
+/* New arrow design with the longer point as the head */
+.direction-arrow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 24px;
     height: 24px;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    z-index: 10;
+}
+
+.arrow-head {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%);
+    /* This creates the asymmetrical arrow shape with the longer point at the top (head) */
+    clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 75%);
+    background-color: #000;
+}
+
+/* Remove the stem as we're using a custom shape */
+.arrow-stem {
+    display: none;
+}
+
+.arrow-stem {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 6px;
+    height: 10px;
+    background-color: #00C853;
+    transform: translateX(-50%);
+    box-shadow: 0px 0px 2px rgba(0,0,0,0.5);
 }
 
 .user-arrow {
@@ -215,11 +261,6 @@ button:hover {
     transform: translate(-50%, -50%);
     transform-origin: center center;
     z-index: 1;
-}
-
-/* Hide the old elements we're replacing */
-.position-dot, .direction-indicator {
-    display: none;
 }
 
 .fit-route-button {
