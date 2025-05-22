@@ -431,20 +431,17 @@ let accuracyCircle = null;
 
 // Update the accuracy circle around user's position
 function updateAccuracyCircle(latlng, accuracy) {
+    // Function disabled to remove the blue circle
     // Remove existing circle if it exists
     if (accuracyCircle) {
         map.removeLayer(accuracyCircle);
+        accuracyCircle = null;
     }
     
-    // Create a circle showing the accuracy radius
-    accuracyCircle = L.circle(latlng, {
-        radius: accuracy,
-        color: '#4285F4',
-        fillColor: '#4285F4',
-        fillOpacity: 0.15,
-        weight: 2
-    }).addTo(map);
+    // Don't create a new circle
+    return;
 }
+
 
 // Calculate distance between two points in meters
 function calculateDistance(latlng1, latlng2) {
