@@ -204,15 +204,15 @@ button:hover {
 
 .direction-indicator {
     position: absolute;
-    top: -20px; /* Move it up so it points to the dot but doesn't overlap */
-    left: 50%;
+    top: 0;
+    left: 0;
     width: 0;
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 20px solid #4285F4;
-    transform: translateX(-50%);
-    transform-origin: center bottom;
+    /* Remove the translateX(-50%) as we'll handle positioning in JavaScript */
+    transform-origin: 0 0; /* Set transform origin to top-left corner */
     z-index: 0;
 }
 
