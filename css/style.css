@@ -209,13 +209,13 @@ button:hover {
 }
 
 /* New arrow design with 4 points */
-/* New arrow design with the longer point as the head */
+/* New arrow design - slimmer with longer side points */
 .direction-arrow {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 24px;
-    height: 24px;
+    width: 20px; /* Reduced width for slimmer arrow */
+    height: 20px; /* Reduced height for slimmer arrow */
     transform: translate(-50%, -50%);
     transform-origin: center center;
     z-index: 10;
@@ -225,11 +225,12 @@ button:hover {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     transform: translate(-50%, -50%);
-    /* This creates the asymmetrical arrow shape with the longer point at the top (head) */
-    clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 75%);
+    /* Modified polygon to create a slimmer arrow with longer side points */
+    /* Format: polygon(left-point-x left-point-y, top-point-x top-point-y, right-point-x right-point-y, bottom-point-x bottom-point-y) */
+    clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 65%);
     background-color: #000;
 }
 
