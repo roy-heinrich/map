@@ -92,10 +92,19 @@ button:hover {
 }
 
 .building-label-tooltip {
-    background: white;
+    background: rgba(255, 255, 255, 0.7); /* Semi-transparent white background */
     border: 1px solid #666;
     font-weight: bold;
     box-shadow: none;
+    pointer-events: none; /* Allow clicks to pass through to elements below */
+    z-index: 400; /* Ensure it's above other elements but doesn't interfere */
+    font-size: 12px; /* Smaller font size */
+    padding: 3px 6px; /* Smaller padding */
+}
+
+/* Override Leaflet's default tooltip arrow positioning */
+.leaflet-tooltip-top:before {
+    border-top-color: rgba(255, 255, 255, 0.7);
 }
 
 
@@ -194,26 +203,23 @@ button:hover {
     height: 24px;
 }
 
-.position-dot {
+.user-arrow {
     position: absolute;
     top: 50%;
     left: 50%;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 16px 8px;
+    border-color: transparent transparent #4285F4 transparent;
     transform: translate(-50%, -50%);
+    transform-origin: center center;
     z-index: 1;
 }
 
-.direction-indicator {
-    position: absolute;
-    top: -30px; /* Increase distance from the center */
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 20px solid #4285F4;
-    transform: translateX(-50%);
-    transform-origin: center bottom;
-    z-index: 0;
+/* Hide the old elements we're replacing */
+.position-dot, .direction-indicator {
+    display: none;
 }
 
 .fit-route-button {

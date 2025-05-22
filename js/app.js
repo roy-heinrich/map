@@ -36,8 +36,7 @@ function createMarker(latlng, isStart) {
         const markerIcon = L.divIcon({
             className: 'custom-marker',
             html: `<div class="marker-container">
-                    <div class="direction-indicator" id="direction-arrow"></div>
-                    <div class="position-dot" style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>
+                    <div class="user-arrow" style="border-color: transparent transparent ${markerColor} transparent;"></div>
                     <div class="location-label">You are here</div>
                   </div>`,
             iconSize: [24, 24],
@@ -415,7 +414,8 @@ L.geoJSON(buildingData, {
         if (feature.properties && feature.properties.name) {
             layer.bindTooltip(feature.properties.name, {
                 permanent: true,
-                direction: "center",
+                direction: "top", // Change from "center" to "top"
+                offset: [0, -40], // Add a significant vertical offset
                 className: "building-label-tooltip"
             });
         }
@@ -533,20 +533,14 @@ function handleOrientation(event) {
 
 // Update the direction indicator on the marker
 function updateMarkerDirection(heading) {
-    // Find the direction arrow within the marker's icon
+    // Find the arrow within the marker's icon
     if (startMarker) {
         const markerIcon = startMarker.getElement();
         if (markerIcon) {
-            const directionArrow = markerIcon.querySelector('.direction-indicator');
-            if (directionArrow) {
-                // Keep the arrow at a fixed distance from the center while rotating
-                directionArrow.style.transform = `translateX(-50%) rotate(${heading}deg)`;
-                
-                // Ensure the arrow stays at the correct distance by adjusting its position
-                // based on the rotation angle
-                const radians = heading * (Math.PI / 180);
-                const offsetY = Math.abs(Math.sin(radians) * 5); // Small adjustment based on angle
-                directionArrow.style.top = `-${30 + offsetY}px`; // Dynamically adjust top position
+            const arrow = markerIcon.querySelector('.user-arrow');
+            if (arrow) {
+                // Rotate the arrow to point in the direction of travel
+                arrow.style.transform = `translate(-50%, -50%) rotate(${heading}deg)`;
             }
         }
     }
