@@ -38,6 +38,7 @@ function createMarker(latlng, isStart) {
             html: `<div class="marker-container">
                     <div class="direction-indicator" id="direction-arrow"></div>
                     <div class="position-dot" style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>
+                    <div class="location-label">You are here</div>
                   </div>`,
             iconSize: [24, 24],
             iconAnchor: [12, 12]

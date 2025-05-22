@@ -231,3 +231,21 @@ button:hover {
 .fit-route-button:hover {
     background-color: #3367d6;
 }
+
+
+/* Location label styles */
+.location-label {
+    position: absolute;
+    top: 25px; /* Position below the marker */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none; /* Ensures clicks pass through to the map */
+}
