@@ -204,15 +204,15 @@ button:hover {
 
 .direction-indicator {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: -30px; /* Increase distance from the center */
+    left: 50%;
     width: 0;
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 20px solid #4285F4;
-    /* Remove the translateX(-50%) as we'll handle positioning in JavaScript */
-    transform-origin: 0 0; /* Set transform origin to top-left corner */
+    transform: translateX(-50%);
+    transform-origin: center bottom;
     z-index: 0;
 }
 

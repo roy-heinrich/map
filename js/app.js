@@ -538,23 +538,15 @@ function updateMarkerDirection(heading) {
         const markerIcon = startMarker.getElement();
         if (markerIcon) {
             const directionArrow = markerIcon.querySelector('.direction-indicator');
-            const positionDot = markerIcon.querySelector('.position-dot');
-            
-            if (directionArrow && positionDot) {
-                // Calculate position for the arrow to rotate around the dot
-                // Position the arrow 20px away from the center of the dot
-                const radius = 20; // Distance from center of dot
+            if (directionArrow) {
+                // Keep the arrow at a fixed distance from the center while rotating
+                directionArrow.style.transform = `translateX(-50%) rotate(${heading}deg)`;
                 
-                // Calculate position based on heading
-                // Convert heading to radians (heading is in degrees)
-                const radians = (heading - 90) * (Math.PI / 180);
-                
-                // Calculate x and y coordinates
-                const x = 12 + radius * Math.cos(radians);
-                const y = 12 + radius * Math.sin(radians);
-                
-                // Position the arrow and rotate it to point away from the dot
-                directionArrow.style.transform = `translate(${x}px, ${y}px) rotate(${heading}deg)`;
+                // Ensure the arrow stays at the correct distance by adjusting its position
+                // based on the rotation angle
+                const radians = heading * (Math.PI / 180);
+                const offsetY = Math.abs(Math.sin(radians) * 5); // Small adjustment based on angle
+                directionArrow.style.top = `-${30 + offsetY}px`; // Dynamically adjust top position
             }
         }
     }
