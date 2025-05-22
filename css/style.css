@@ -232,7 +232,7 @@ button:hover {
     /* Modified polygon to create a longer, slimmer arrow */
     /* Format: polygon(left-point-x left-point-y, top-point-x top-point-y, right-point-x right-point-y, bottom-point-x bottom-point-y) */
     clip-path: polygon(30% 50%, 50% 0%, 70% 50%, 50% 65%);
-    background-color: #000;
+    background-color: #00C853; /* Changed from black to green */
 }
 
 /* Remove the stem as we're using a custom shape */
